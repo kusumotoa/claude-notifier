@@ -293,16 +293,6 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             notificationActions.append(action)
         }
 
-        // Add close action if we have other actions
-        if !args.actions.isEmpty {
-            let closeAction = UNNotificationAction(
-                identifier: Self.closeActionIdentifier,
-                title: args.closeLabel,
-                options: []
-            )
-            notificationActions.append(closeAction)
-        }
-
         let categoryOptions: UNNotificationCategoryOptions = []
 
         let category = UNNotificationCategory(
