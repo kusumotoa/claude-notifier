@@ -7,7 +7,11 @@ BUILD_DIR = .build/release
 APP_DIR = $(APP_NAME)/Contents
 BINARY = $(BUILD_DIR)/$(PRODUCT_NAME)
 
-.PHONY: all build bundle clean install uninstall release zip
+# Code signing
+SIGNING_IDENTITY = Developer ID Application: Masahiro Kusumoto (N64RMB3HK7)
+KEYCHAIN_PROFILE = claude-notifier-notarize
+
+.PHONY: all build bundle clean install uninstall release notarize help
 
 all: bundle
 
@@ -15,7 +19,7 @@ all: bundle
 build:
 	swift build -c release
 
-# Create the .app bundle structure
+# Create the .app bundle structure (ad-hoc signed for local use)
 bundle: build
 	@echo "Creating app bundle..."
 	rm -rf $(APP_NAME)
@@ -23,9 +27,31 @@ bundle: build
 	mkdir -p $(APP_DIR)/Resources
 	cp $(BINARY) $(APP_DIR)/MacOS/$(PRODUCT_NAME)
 	cp Resources/Info.plist $(APP_DIR)/Info.plist
-	@echo "Signing app bundle..."
+	@echo "Signing app bundle (ad-hoc)..."
 	codesign --force --deep --sign - $(APP_NAME)
 	@echo "App bundle created: $(APP_NAME)"
+
+# Create release with Developer ID signing and notarization
+release: build
+	@echo "Creating app bundle..."
+	rm -rf $(APP_NAME)
+	mkdir -p $(APP_DIR)/MacOS
+	mkdir -p $(APP_DIR)/Resources
+	cp $(BINARY) $(APP_DIR)/MacOS/$(PRODUCT_NAME)
+	cp Resources/Info.plist $(APP_DIR)/Info.plist
+	@echo "Signing with Developer ID..."
+	codesign --force --options runtime --sign "$(SIGNING_IDENTITY)" $(APP_NAME)
+	@echo "Creating zip for notarization..."
+	rm -f $(PRODUCT_NAME).zip
+	ditto -c -k --keepParent $(APP_NAME) $(PRODUCT_NAME).zip
+	@echo "Submitting for notarization..."
+	xcrun notarytool submit $(PRODUCT_NAME).zip --keychain-profile "$(KEYCHAIN_PROFILE)" --wait
+	@echo "Stapling notarization ticket..."
+	xcrun stapler staple $(APP_NAME)
+	@echo "Recreating zip with stapled app..."
+	rm -f $(PRODUCT_NAME).zip
+	ditto -c -k --keepParent $(APP_NAME) $(PRODUCT_NAME).zip
+	@echo "Release created: $(PRODUCT_NAME).zip"
 
 # Clean build artifacts
 clean:
@@ -52,21 +78,14 @@ uninstall:
 	rm -f /usr/local/bin/$(PRODUCT_NAME)
 	@echo "Uninstalled successfully!"
 
-# Create release zip for distribution
-release: bundle
-	@echo "Creating release archive..."
-	rm -f $(PRODUCT_NAME).zip
-	zip -r $(PRODUCT_NAME).zip $(APP_NAME)
-	@echo "Release archive created: $(PRODUCT_NAME).zip"
-
 # Show help
 help:
 	@echo "claude-notifier build targets:"
 	@echo ""
 	@echo "  make build    - Build the Swift package"
-	@echo "  make bundle   - Create the .app bundle (default)"
+	@echo "  make bundle   - Create .app bundle (ad-hoc signed, local use)"
+	@echo "  make release  - Create signed & notarized release"
 	@echo "  make install  - Install to /Applications and /usr/local/bin"
 	@echo "  make uninstall- Remove from /Applications and /usr/local/bin"
-	@echo "  make release  - Create a zip archive for distribution"
 	@echo "  make clean    - Clean build artifacts"
 	@echo "  make help     - Show this help"
