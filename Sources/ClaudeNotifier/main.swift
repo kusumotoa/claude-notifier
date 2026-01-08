@@ -288,7 +288,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             let action = UNNotificationAction(
                 identifier: "ACTION_\(index)",
                 title: actionTitle,
-                options: [.foreground]
+                options: []  // No .foreground - handle in background
             )
             notificationActions.append(action)
         }
