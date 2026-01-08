@@ -2,18 +2,6 @@
 
 Send macOS notifications with action buttons from the command line.
 
-A lightweight alternative to [alerter](https://github.com/vjeantet/alerter), built with Swift using the modern `UNUserNotificationCenter` API.
-
-## Features
-
-- Display notifications with custom action buttons
-- Support for timeout auto-close
-- Sound notifications
-- JSON output for scripting
-- Reply text field support
-- Group notifications management
-- Pipe message from stdin
-
 ## Requirements
 
 - macOS 11.0 (Big Sur) or later
@@ -154,7 +142,3 @@ make clean
 ## License
 
 MIT License
-
-## Credits
-
-Inspired by [alerter](https://github.com/vjeantet/alerter) by Valère Jeantet.
