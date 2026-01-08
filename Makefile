@@ -27,6 +27,7 @@ bundle: build
 	mkdir -p $(APP_DIR)/Resources
 	cp $(BINARY) $(APP_DIR)/MacOS/$(PRODUCT_NAME)
 	cp Resources/Info.plist $(APP_DIR)/Info.plist
+	cp Resources/AppIcon.icns $(APP_DIR)/Resources/AppIcon.icns
 	@echo "Signing app bundle (ad-hoc)..."
 	codesign --force --deep --sign - $(APP_NAME)
 	@echo "App bundle created: $(APP_NAME)"
@@ -39,6 +40,7 @@ release: build
 	mkdir -p $(APP_DIR)/Resources
 	cp $(BINARY) $(APP_DIR)/MacOS/$(PRODUCT_NAME)
 	cp Resources/Info.plist $(APP_DIR)/Info.plist
+	cp Resources/AppIcon.icns $(APP_DIR)/Resources/AppIcon.icns
 	@echo "Signing with Developer ID..."
 	codesign --force --options runtime --sign "$(SIGNING_IDENTITY)" $(APP_NAME)
 	@echo "Creating zip for notarization..."
