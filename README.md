@@ -13,15 +13,7 @@ Send macOS notifications with action buttons from the command line.
 
 ```bash
 brew tap kusumotoa/tap
-brew install --cask --no-quarantine claude-notifier
-```
-
-> **Note:** The `--no-quarantine` flag prevents Gatekeeper warnings since this app is not signed with an Apple Developer ID.
-
-If you already installed without `--no-quarantine` and see a Gatekeeper warning:
-
-```bash
-xattr -d com.apple.quarantine /Applications/claude-notifier.app
+brew install claude-notifier
 ```
 
 ### Manual Installation
