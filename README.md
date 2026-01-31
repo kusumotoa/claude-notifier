@@ -42,6 +42,9 @@ claude-notifier -message "Allow this action?" -actions "Allow,Deny" -title "Clau
 # Pipe from stdin
 echo "Build finished" | claude-notifier -sound default
 
+# Execute a command when notification is tapped
+claude-notifier -message "Build done" -execute "open -a iTerm" -sound default
+
 # JSON output for scripting
 claude-notifier -message "Continue?" -actions "Yes,No" -json
 ```
@@ -63,6 +66,7 @@ claude-notifier -message "Continue?" -actions "Yes,No" -json
 | `-group ID` | Group notifications by ID |
 | `-remove ID` | Remove notifications (use 'ALL' for all) |
 | `-list ID` | List notifications |
+| `-execute COMMAND` | Execute COMMAND when notification body is clicked |
 | `-help` | Show help |
 
 ## Output
