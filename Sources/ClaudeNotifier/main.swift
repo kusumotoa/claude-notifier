@@ -19,6 +19,7 @@ struct CLIArguments {
     var list: String?
     var appIcon: String?
     var contentImage: String?
+    var execute: String?
 
     static func parse() -> CLIArguments {
         var args = CLIArguments()
@@ -74,6 +75,9 @@ struct CLIArguments {
             case "-contentImage":
                 i += 1
                 if i < arguments.count { args.contentImage = arguments[i] }
+            case "-execute":
+                i += 1
+                if i < arguments.count { args.execute = arguments[i] }
             case "-help", "-h":
                 printUsage()
                 exit(0)
@@ -146,6 +150,7 @@ func printUsage() {
         -list ID            List notifications with group ID
         -appIcon PATH       Custom app icon (file path or URL)
         -contentImage PATH  Content image (file path or URL)
+        -execute COMMAND    Execute COMMAND when notification body is clicked
         -help               Show this help
 
     OUTPUT:
@@ -330,7 +335,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         }
 
         // Store actions in userInfo for later retrieval
-        content.userInfo = ["actions": args.actions]
+        content.userInfo = ["actions": args.actions, "execute": args.execute as Any]
 
         // Create request
         let request = UNNotificationRequest(
@@ -402,13 +407,34 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
     private func handleResult(_ result: NotificationResult) {
         timeoutTimer?.invalidate()
-        result.output(asJSON: args.json)
+
+        // Execute command on content click if specified
+        if case .contentClicked = result, let command = args.execute {
+            executeCommand(command)
+        } else {
+            result.output(asJSON: args.json)
+        }
 
         // Clean up the notification
         let center = UNUserNotificationCenter.current()
         center.removeDeliveredNotifications(withIdentifiers: [notificationIdentifier])
 
         exit(0)
+    }
+
+    private func executeCommand(_ command: String) {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-c", command]
+        process.standardOutput = FileHandle.standardOutput
+        process.standardError = FileHandle.standardError
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+        } catch {
+            fputs("Error executing command: \(error.localizedDescription)\n", stderr)
+        }
     }
 
     // MARK: - UNUserNotificationCenterDelegate
